@@ -1,7 +1,6 @@
 # GCCM-BE 建筑能源几何因果推理引擎
 
-> **[English](README.md) | 中文**
-
+> **中文 | [英文版](README.md)**
 
 **Geometry-based Causal Control Model for Building Energy**
 

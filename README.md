@@ -1,6 +1,11 @@
 # GCCM-BE — Geometry-based Causal Control Model for Building Energy
 
-> **English | [中文](README.zh-CN.md)**
+> **English | [Chinese](README.zh-CN.md)**
+
+[![CI](https://github.com/ZHWB128128/gccm-be/actions/workflows/test.yml/badge.svg)](https://github.com/ZHWB128128/gccm-be/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
+[![Deps: numpy/scipy](https://img.shields.io/badge/deps-numpy%20%2F%20scipy-green.svg)](pyproject.toml)
 
 A **rolling-horizon Model Predictive Control (MPC) engine with a safety degradation chain** for building HVAC and data center cooling optimization. Pure Python (numpy/scipy), with optional CasADi backend, deployable on edge devices.
 
