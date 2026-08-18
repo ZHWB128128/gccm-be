@@ -34,7 +34,7 @@ robust = [
 ]
 
 [project.urls]
-Repository = "https://github.com/yourname/gccm-be"
+Repository = "https://github.com/ZHWB128128/gccm-be"
 
 [tool.setuptools.packages.find]
 include = ["gccm_be*"]
