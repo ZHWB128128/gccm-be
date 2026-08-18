@@ -131,7 +131,7 @@ docs/             # architecture / technical report / math positioning / images
 
 ## 🗺️ Roadmap
 
-- [ ] Real-building pilot with measured data (IPMVP protocol)
+- [ ] Real-building pilot with measured data (IPMVP protocol) — [plan](docs/PILOT_PLAN.md)
 - [ ] BACnet / Modbus integration (interface already stubbed)
 - [ ] Two-zone configuration support
 - [ ] District heating / thermal storage / battery storage scenarios
