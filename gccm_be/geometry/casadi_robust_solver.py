@@ -1,4 +1,4 @@
-"""CasADi + IPOPT 鲁棒 MPC：多模型场景共享控制，硬约束对所有场景满足。"""
+"""CasADi + IPOPT robust MPC: shared control across multiple model scenarios, hard constraints satisfied for all scenarios."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -22,7 +22,7 @@ from .casadi_solver import _casadi_step
 
 @dataclass
 class CasadiRobustGeodesicSolver:
-    """CasADi + IPOPT 鲁棒测地线求解器（单区域 RC 多场景）。"""
+    """CasADi + IPOPT robust geodesic solver (single-zone RC, multiple scenarios)."""
 
     nominal_sim: Simulator
     landscape: EnergyLandscape

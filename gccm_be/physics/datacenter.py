@@ -1,12 +1,12 @@
-"""数据中心机房冷却模型：冷通道温度 + 蓄冷罐（主动充放冷）。
+"""Data center cooling model: cold-aisle temperature + thermal storage tank (active charge/discharge).
 
-物理结构（二阶 + 双控制）：
-    - 冷通道（cold aisle）：IT 设备产热 Q_it + 室外耦合 + 机组直供冷 + 蓄冷罐放冷
-    - 蓄冷罐（thermal storage）：大热容，受主动充冷/放冷指令控制
-    - 控制：u0 = 机组直供冷功率（kW，负值=制冷）；u1 = 蓄冷罐流量（正值=充冷，负值=放冷）
-    - 电价：峰谷差价驱动 MPC"谷时充冷、峰时放冷"（电价套利 + 峰时削峰）
+Physics (second order, dual control):
+    - Cold aisle: IT heat Q_it + outdoor coupling + direct chiller cooling + tank discharge
+    - Storage tank: large thermal mass, controlled by active charge/discharge commands
+    - Control: u0 = chiller direct cooling power (kW, negative = cooling); u1 = tank flow (positive = charge, negative = discharge)
+    - Price: valley/peak spread drives MPC 'charge at valley, discharge at peak' (arbitrage + peak shaving)
 
-接口与 Simulator 兼容，可直接接入 GCCMEngine（换模型不换引擎）。
+Interface-compatible with Simulator; plug directly into GCCMEngine (change model, not engine).
 """
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from ..types import ControlInput, ExternalInput, SystemState
 
 @dataclass
 class DataCenterCoolingModel:
-    """冷通道 + 蓄冷罐热模型（显式 Euler，双控制）。"""
+    """Cold-aisle + storage tank thermal model (explicit Euler, dual control)."""
 
     c_aisle: float = 20.0      # 冷通道热容 kWh/K（约 500m² 机房空气+设备表面）
     c_tank: float = 150.0      # 蓄冷罐热容 kWh/K（约 55m³ 水罐，按峰期 7h×100kW 蓄冷设计）
@@ -62,7 +62,7 @@ class DataCenterCoolingModel:
 
 @dataclass
 class DataCenterHVAC:
-    """制冷机组 + 蓄冷泵：容量、COP（含部分负荷效率）、电功率。"""
+    """Chiller + storage pump: capacity, COP (with part-load efficiency), electric power."""
 
     q_min: float = -400.0    # 机组最大制冷 kW（覆盖 IT 峰值）
     q_max: float = 0.0       # 机组无加热
@@ -98,7 +98,7 @@ class DataCenterBuilding:
 
 
 class DataCenterSimulator:
-    """与 Simulator 兼容的数据中心仿真器（可直接传给 GCCMEngine）。"""
+    """Data center simulator compatible with Simulator (passable directly to GCCMEngine)."""
 
     def __init__(
         self,
@@ -134,10 +134,10 @@ class DataCenterSimulator:
 
 
 class DataCenterProvider:
-    """数据中心外部输入：室外温度 / 太阳(0) / IT 负载 / 电价。
+    """Data center external inputs: outdoor temp / solar(0) / IT load / price.
 
-    布局与 ExternalInput 约定一致：w=[T_out, solar, it_load, price]。
-    IT 负载：白天高（200 kW）、夜间低（120 kW）；电价含峰谷尖峰。
+    Layout matches the ExternalInput convention: w=[T_out, solar, it_load, price].
+    IT load: high during day (200 kW), low at night (120 kW); price includes valley/peak/spike.
     """
 
     labels: List[str] = ["T_out", "solar", "it_load", "price"]

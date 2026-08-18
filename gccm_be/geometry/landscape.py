@@ -1,4 +1,4 @@
-"""能量景观构造器：将规范层权重与设定点映射为几何优化目标。"""
+"""Energy landscape constructor: map normative weights and setpoints into a geometric optimization objective."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -14,7 +14,7 @@ from .metric_tensor import MetricTensor
 
 @dataclass
 class EnergyLandscape:
-    """能量函数 E(state, control, external) 及其加权结构。"""
+    """Energy function E(state, control, external) and its weighted structure."""
 
     setpoints: Dict[str, float]
     weights: Dict[str, float]

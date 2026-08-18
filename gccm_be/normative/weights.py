@@ -1,4 +1,4 @@
-"""权重映射器：将上下文标签与模式映射为能量景观权重。"""
+"""Weight mapper: map context labels and modes into energy landscape weights."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,7 +10,7 @@ from .modes import ModeManager
 
 
 class WeightMapper:
-    """根据模式和上下文生成能量景观权重。"""
+    """Generates energy landscape weights from mode and context."""
 
     BASE_WEIGHTS: Dict[str, Dict[str, float]] = {
         "comfort": {"comfort": 1.2, "energy": 0.1, "smooth": 0.3},

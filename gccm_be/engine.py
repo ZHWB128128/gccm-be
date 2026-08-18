@@ -1,4 +1,4 @@
-"""GCCM-BE 顶层引擎：周期滚动优化与事件驱动决策编排。"""
+"""GCCM-BE top-level engine: rolling-horizon optimization and event-driven decision orchestration."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -28,7 +28,7 @@ from .types import ControlDecision, ControlInput, ExternalInput, SystemState, Tr
 
 @dataclass
 class GCCMEngine:
-    """组合五层模块，提供统一控制决策入口。"""
+    """Composes the five layers and provides a unified control-decision entry point."""
 
     simulator: Simulator = None  # type: ignore[assignment]
     external_provider: ExternalInputProvider = None  # type: ignore[assignment]
@@ -437,7 +437,7 @@ class GCCMEngine:
         return controls
 
     def _rollout_mode(self, state: SystemState, time_h: float, mode: str, steps: int) -> dict:
-        """在指定模式下滚动仿真 steps 步，用于真正的反事实对比。"""
+        """Rolls out `steps` steps under a given mode for true counterfactual comparison."""
         s = state.copy()
         t = time_h
         prev = None
@@ -461,7 +461,7 @@ class GCCMEngine:
 
     def observe_step(self, state: SystemState, control: ControlInput, external: ExternalInput,
                     next_state: SystemState, dt: float = 0.25) -> None:
-        """记录一步真实数据，并更新在线辨识器。"""
+        """Records one step of real data and updates the online identifiers."""
         self._recent_step = {
             "state": state.copy(),
             "control": control.copy(),
@@ -538,7 +538,7 @@ class GCCMEngine:
         return True
 
     def _apply_model_bias(self, external_seq: Sequence[ExternalInput]) -> List[ExternalInput]:
-        """将在线辨识得到的模型偏差叠加到预测外部输入上。"""
+        """Adds the online-identified model bias to the predicted external inputs."""
         if abs(self.model_bias) < 1e-6:
             return list(external_seq)
         corrected = []
@@ -552,7 +552,7 @@ class GCCMEngine:
         return corrected
 
     def identification_trusted(self, min_samples: int = 30) -> bool:
-        """辨识结果可信度检查：样本足够、参数物理合理、近期误差不大。"""
+        """Identification trust check: enough samples, physically plausible parameters, and small recent error."""
         if self.rc_identifier is None or len(self.rc_identifier.history) < min_samples:
             return False
         recent_err = float(np.mean(np.abs(self.rc_identifier.history[-10:])))
@@ -580,7 +580,7 @@ class GCCMEngine:
         return True
 
     def _worst_case_safe_control(self, state: SystemState, dt: float, external: Optional[ExternalInput] = None) -> ControlInput:
-        """保守安全控制：优先用实际天气+安全裕度，否则用物理上界。"""
+        """Conservative safe control: prefer actual weather + safety margin, otherwise use physical upper bounds."""
         building = self.simulator.building
         bounds = self.simulator.hvac.bounds()
         n_u = len(bounds)
@@ -656,7 +656,7 @@ class GCCMEngine:
         return ControlInput(np.array([q]), list(labels))
 
     def _safe_cool_cap(self, err: float, q_max: float) -> float:
-        """根据温度偏差动态限制安全制冷功率，避免过冷。"""
+        """Dynamically caps safe cooling power by temperature deviation to avoid overcooling."""
         if err > 2.0:
             return min(q_max, 6.0)
         if err > 1.0:
@@ -664,7 +664,7 @@ class GCCMEngine:
         return min(q_max, 2.5)
 
     def _feedback_safe_control(self, state: SystemState, dt: float, external: Optional[ExternalInput] = None) -> ControlInput:
-        """无模型反馈安全控制：PI + 天气前馈，不依赖模型预测。"""
+        """Model-free feedback safe control: PI + weather feedforward, independent of model prediction."""
         bounds = self.simulator.hvac.bounds()
         n_u = len(bounds)
         air_idx = [i for i, lab in enumerate(state.labels) if lab.startswith("T_air")]
@@ -701,7 +701,7 @@ class GCCMEngine:
         return ControlInput(safe_u, list(labels))
 
     def _rollout_feedback(self, state: SystemState, time_h: float, steps: int) -> dict:
-        """反事实：无模型反馈安全控制的短时域滚动。"""
+        """Counterfactual: short-horizon rollout of the model-free feedback safe control."""
         s = state.copy()
         t = time_h
         temps = []
@@ -722,7 +722,7 @@ class GCCMEngine:
         return {"total_cost": cost, "comfort_violation": viol, "peak_power": peak}
 
     def _snapshot_control_state(self) -> dict:
-        """快照控制器全部可变状态，供反事实等"假设性"滚动前后恢复，避免污染真实控制。"""
+        """Snapshots all mutable controller state so counterfactual (hypothetical) rollouts can restore it and never pollute the real control."""
         return {
             "warm_start": self._warm_start,
             "last_curvature_min": self._last_curvature_min,
@@ -737,7 +737,7 @@ class GCCMEngine:
         }
 
     def _restore_control_state(self, snap: dict) -> None:
-        """恢复控制器状态快照，撤销反事实滚动产生的所有副作用。"""
+        """Restores the controller state snapshot, undoing all side effects of counterfactual rollouts."""
         self._warm_start = snap["warm_start"]
         self._last_curvature_min = snap["last_curvature_min"]
         self._safe_integral = dict(snap["safe_integral"])
@@ -750,7 +750,7 @@ class GCCMEngine:
         self.mode_manager.current_mode = snap["mode"]
 
     def _run_counterfactual_undecidable(self, state: SystemState, time_h: float) -> dict:
-        """不可判定时的反事实：继续信任模型 vs 无模型降级。"""
+        """Counterfactual under undecidable: keep trusting the model vs model-free degradation."""
         snap = self._snapshot_control_state()
         try:
             steps = max(1, self.counterfactual_horizon)
@@ -778,11 +778,11 @@ class GCCMEngine:
             self._restore_control_state(snap)
 
     def set_causal_scm_from_data(self, data: list) -> None:
-        """用干预实验数据拟合 SCM 并设为当前因果模型。"""
+        """Fits an SCM from intervention data and sets it as the current causal model."""
         self.causal_scm = DataDrivenSCM().fit(data).to_scm()
 
     def _build_default_scm(self) -> StructuralCausalModel:
-        """默认结构因果模型：从当前物理模型自动生成。"""
+        """Default structural causal model: auto-generated from the current physical model."""
         return build_rc_scm(self.simulator.building, self.simulator.hvac)
 
     def _run_counterfactual(
@@ -792,7 +792,7 @@ class GCCMEngine:
         current_mode: str,
         suggested_mode: str,
     ) -> dict:
-        """模式切换后运行短时域反事实，使用真正的滚动优化。"""
+        """Runs a short-horizon counterfactual after a mode switch, using true rolling optimization."""
         snap = self._snapshot_control_state()
         try:
             steps = max(1, self.counterfactual_horizon)
@@ -820,9 +820,9 @@ class GCCMEngine:
         step_h: float = 1.0 / 12.0,
         plant_provider: Optional[ExternalInputProvider] = None,
     ) -> List[ControlDecision]:
-        """滚动时域闭环仿真，用于演示与测试。
+        """Rolling-horizon closed-loop simulation for demos and tests.
 
-        每次执行后计算预测误差，并在下一次优化时传递给决策层。
+        Computes the prediction error after each step and passes it to the next optimization.
         """
         state = initial_state.copy()
         time_h = start_time_h

@@ -1,4 +1,4 @@
-"""严格黎曼几何基础：Christoffel 联络与测地线方程数值积分。"""
+"""Strict Riemannian geometry basics: Christoffel symbols and numerical integration of geodesic equations."""
 from __future__ import annotations
 
 from dataclasses import dataclass

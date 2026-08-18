@@ -1,4 +1,4 @@
-"""在线参数辨识：递归最小二乘（RLS）估计模型参数。"""
+"""Online parameter identification: recursive least squares (RLS) estimation."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,10 +9,10 @@ import numpy as np
 
 @dataclass
 class OnlineIdentifier:
-    """简单 RLS 辨识器，用于在线估计线性化模型参数。
+    """Simple RLS identifier for online estimation of linearized model parameters.
 
-    当前作为通用框架：输入特征 phi 和观测 y，更新 theta。
-    后续可针对 RC 模型构造具体特征（温差、控制量、太阳辐射等）。
+    A general framework: inputs feature phi and observation y, updates theta.
+    Can be specialized for RC models (temperature differences, control, solar, etc.).
     """
 
     dim: int = 3
@@ -51,9 +51,9 @@ class OnlineIdentifier:
 
 @dataclass
 class RCOnlineIdentifier:
-    """面向单区域 RC 模型的在线参数辨识。
+    """Online parameter identification for single-zone RC models.
 
-    估计离散化后的 T_air 动态：
+    Estimates the discretized T_air dynamics:
         dT_air/dt =
             a1*(T_wall - T_air)
             + a2*(T_out - T_air)
@@ -61,8 +61,8 @@ class RCOnlineIdentifier:
             + a4*occ
             + a5*Q
             + a6
-    其中 a1=1/(R_air*C_air), a2=1/(R_wall*C_air),
-          a3=solar_gain/C_air, a4=1/C_air, a5=1/C_air。
+    where a1=1/(R_air*C_air), a2=1/(R_wall*C_air),
+          a3=solar_gain/C_air, a4=1/C_air, a5=1/C_air.
     """
 
     lam: float = 0.98

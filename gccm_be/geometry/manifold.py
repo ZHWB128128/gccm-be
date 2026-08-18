@@ -1,4 +1,4 @@
-"""状态流形管理器：定义状态维度、含义、归一化与坐标变换。"""
+"""State manifold manager: state dimensions, semantics, normalization and coordinate transforms."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -11,7 +11,7 @@ from ..types import SystemState
 
 @dataclass
 class StateManifold:
-    """维护状态向量的语义信息。"""
+    """Maintains semantic information of the state vector."""
 
     labels: List[str]
     units: Dict[str, str] = field(default_factory=dict)

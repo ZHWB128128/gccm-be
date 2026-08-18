@@ -1,4 +1,4 @@
-"""结构因果模型（SCM）原型：用于可辩护的因果推断与 do-干预。"""
+"""Structural causal model (SCM) prototype for defensible causal inference and do-intervention."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,9 +9,9 @@ import numpy as np
 
 @dataclass
 class StructuralCausalModel:
-    """极简 SCM：每个变量由其父变量和噪声决定。
+    """Minimal SCM: each variable is determined by its parents and noise.
 
-    示例变量：
+    Example variables:
         mode, metric, control, temperature, cost
     """
 

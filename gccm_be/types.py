@@ -1,4 +1,4 @@
-"""核心数据类型定义。"""
+"""Core data type definitions."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,7 +9,7 @@ import numpy as np
 
 @dataclass
 class SystemState:
-    """系统状态向量，例如 [室内温度, 墙体温度]。"""
+    """System state vector, e.g. [indoor temp, wall temp]."""
 
     x: np.ndarray
     labels: List[str] = field(default_factory=list)
@@ -33,7 +33,7 @@ class SystemState:
 
 @dataclass
 class ControlInput:
-    """控制向量，例如 [空调热功率/冷功率]。"""
+    """Control vector, e.g. [HVAC heating/cooling power]."""
 
     u: np.ndarray
     labels: List[str] = field(default_factory=list)
@@ -57,7 +57,7 @@ class ControlInput:
 
 @dataclass
 class ExternalInput:
-    """外部输入向量，例如 [室外温度, 太阳辐射, 室内热源, 电价]。"""
+    """External input vector, e.g. [outdoor temp, solar, internal heat, price]."""
 
     w: np.ndarray
     labels: List[str] = field(default_factory=list)
@@ -72,7 +72,7 @@ class ExternalInput:
         return self.w.size
 
     def get(self, label: str, default: Optional[float] = None) -> Optional[float]:
-        """按标签取值（优于位置索引，多区域布局下不会取错维度）。"""
+        """Look up a value by label (safer than positional indexing in multi-zone layouts)."""
         for i, lab in enumerate(self.labels):
             if lab == label:
                 return float(self.w[i])
@@ -80,7 +80,7 @@ class ExternalInput:
 
     @property
     def price(self) -> float:
-        """电价：优先按 price 标签定位；无标签时按约定回退（单区域 w[3]、两区域 w[5]）。"""
+        """Electricity price: prefer the 'price' label; fall back to convention (w[3] single-zone, w[5] two-zone)."""
         p = self.get("price")
         if p is not None:
             return float(p)
@@ -100,7 +100,7 @@ class ExternalInput:
 
 @dataclass
 class EnergyLandscapeParams:
-    """能量景观参数，由规范层输出。"""
+    """Energy landscape parameters, produced by the normative layer."""
 
     weights: dict[str, float] = field(default_factory=dict)
     setpoints: dict[str, float] = field(default_factory=dict)
@@ -110,7 +110,7 @@ class EnergyLandscapeParams:
 
 @dataclass
 class Trajectory:
-    """测地线求解结果：最优控制序列、预测状态轨迹与成本。"""
+    """Geodesic solver result: optimal control sequence, predicted state trajectory and costs."""
 
     controls: List[ControlInput]
     states: List[SystemState]
@@ -122,7 +122,7 @@ class Trajectory:
 
 @dataclass
 class DiagnosisReport:
-    """决策与诊断层输出。"""
+    """Decision & diagnosis layer output."""
 
     confidence: float = 1.0
     should_switch_mode: bool = False
@@ -134,7 +134,7 @@ class DiagnosisReport:
 
 @dataclass
 class ControlDecision:
-    """引擎一次滚动优化的完整输出。"""
+    """Full output of one engine rolling-horizon optimization."""
 
     control: ControlInput
     trajectory: Trajectory

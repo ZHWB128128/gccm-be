@@ -1,4 +1,4 @@
-"""决策与诊断层：输出置信度、是否切换模式、是否不可判定。"""
+"""Decision & diagnosis layer: output confidence, mode-switch decisions and undecidable flags."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -13,7 +13,7 @@ from .triggers import AxiomMutationTrigger
 
 @dataclass
 class DecisionDiagnoser:
-    """组合触发器、置信度评估与不可判定输出。"""
+    """Combines triggers, confidence evaluation and undecidable output."""
 
     trigger: AxiomMutationTrigger = None  # type: ignore[assignment]
     confidence_evaluator: ConfidenceEvaluator = None  # type: ignore[assignment]

@@ -1,4 +1,4 @@
-"""曲率分析器：计算能量景观关于状态的二阶结构。"""
+"""Curvature analyzer: second-order structure of the energy landscape w.r.t. state."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -12,7 +12,7 @@ from .landscape import EnergyLandscape
 
 @dataclass
 class CurvatureAnalysis:
-    """曲率分析结果。"""
+    """Curvature analysis result."""
 
     hessian: np.ndarray
     eigenvalues: np.ndarray
@@ -30,7 +30,7 @@ class CurvatureAnalysis:
 
 
 class CurvatureAnalyzer:
-    """基于有限差分的局部能量景观二阶结构分析。"""
+    """Local second-order structure analysis of the energy landscape via finite differences."""
 
     def __init__(self, eps: float = 1e-3) -> None:
         self.eps = eps

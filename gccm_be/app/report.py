@@ -1,4 +1,4 @@
-"""报告生成器：输出可读的节能/诊断报告。"""
+"""Report generator: readable energy-saving / diagnosis reports."""
 from __future__ import annotations
 
 from typing import List, Sequence
@@ -8,7 +8,7 @@ from ..types import ControlDecision
 
 
 class ReportGenerator:
-    """基于运行记录生成 Markdown/文本报告。"""
+    """Generate Markdown/text reports from run records."""
 
     def __init__(self, engine: GCCMEngine) -> None:
         self.engine = engine

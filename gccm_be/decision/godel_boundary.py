@@ -1,4 +1,4 @@
-"""哥德尔边界：三重判据决定不可判定。"""
+"""Godel boundary: three-fold criteria decide undecidability."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass
 class GodelBoundary:
-    """当预测误差、几何曲率、自指误差模型同时恶化时输出不可判定。"""
+    """Outputs undecidable when prediction error, geometric curvature and self-predicted error simultaneously degrade."""
 
     error_threshold: float = 0.8
     curvature_threshold: float = 0.01

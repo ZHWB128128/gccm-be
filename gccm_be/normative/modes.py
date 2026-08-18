@@ -1,4 +1,4 @@
-"""多模式管理器：维护预定义运行模式与切换逻辑。"""
+"""Multi-mode manager: predefined operation modes and switching logic."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,7 +9,7 @@ from .context import ContextLabels
 
 @dataclass
 class ModeManager:
-    """模式集合及切换。"""
+    """Mode set and switching."""
 
     current_mode: str = "balanced"
     allowed_modes: List[str] = field(default_factory=lambda: ["comfort", "balanced", "energy", "demand_response"])

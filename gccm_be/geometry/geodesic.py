@@ -1,4 +1,4 @@
-"""测地线求解器：在能量景观上寻找有限时域最优控制路径。"""
+"""Geodesic solver: find finite-horizon optimal control paths on the energy landscape."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -16,7 +16,7 @@ from .riemannian import christoffel_symbols, christoffel_symbols_analytic, chris
 
 @dataclass
 class GeodesicSolver:
-    """统一求解接口，内部可替换为 iLQR、SQP、内点法等。"""
+    """Unified solving interface; internally replaceable with iLQR, SQP, interior-point, etc."""
 
     simulator: Simulator
     landscape: EnergyLandscape

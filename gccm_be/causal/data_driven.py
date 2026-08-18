@@ -1,4 +1,4 @@
-"""数据驱动因果推断：从干预实验数据估计 SCM 参数。"""
+"""Data-driven causal inference: estimate SCM parameters from intervention data."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,7 +11,7 @@ from .scm import StructuralCausalModel
 
 @dataclass
 class DataDrivenSCM:
-    """从多组 do-干预实验数据估计线性 SCM。"""
+    """Estimate a linear SCM from multiple do-intervention datasets."""
 
     equations: Dict[str, Dict[str, float]] = None  # type: ignore[assignment]
     intercepts: Dict[str, float] = None  # type: ignore[assignment]

@@ -1,4 +1,4 @@
-"""轻量鲁棒 MPC：多模型场景下共享控制序列，约束对所有场景满足。"""
+"""Lightweight robust MPC: shared control sequence across model scenarios, constraints satisfied for all scenarios."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -14,10 +14,9 @@ from .landscape import EnergyLandscape
 
 @dataclass
 class RobustGeodesicSolver:
-    """面向单区域 RC 的鲁棒测地线求解器原型。
+    """Robust geodesic solver prototype for single-zone RC.
 
-    对多个可能的建筑模型同时 rollout，
-    控制序列共享，舒适约束要求所有场景都满足。
+    Rolls out multiple possible building models simultaneously; the control sequence is shared and comfort constraints must hold for all scenarios.
     """
 
     nominal_sim: Simulator

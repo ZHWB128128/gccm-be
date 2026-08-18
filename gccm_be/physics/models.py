@@ -1,4 +1,4 @@
-"""物理世界仿真层：建筑热工与空调系统模型。"""
+"""Physical world simulation layer: building thermal and HVAC system models."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -11,18 +11,18 @@ from ..types import ControlInput, ExternalInput, SystemState
 
 @dataclass
 class RCBuildingModel:
-    """二阶 RC 建筑热工模型。
+    """Second-order RC building thermal model.
 
-    状态:
-        T_air  : 室内空气温度 (°C)
-        T_wall : 墙体温度 (°C)
-    控制:
-        Q_hvac : 空调注入室内热功率 (kW); 正为制热, 负为制冷
-    外部:
-        T_out  : 室外温度 (°C)
-        solar  : 太阳辐射等效热功率 (kW)
-        occ    : 室内人员/设备热功率 (kW)
-        price  : 电价 (元/kWh), 不参与状态演化
+    States:
+        T_air  : indoor air temperature (°C)
+        T_wall : wall temperature (°C)
+    Control:
+        Q_hvac : heat injected into the room (kW); positive = heating, negative = cooling
+    External:
+        T_out  : outdoor temperature (°C)
+        solar  : solar equivalent heat power (kW)
+        occ    : occupants/equipment heat power (kW)
+        price  : electricity price (¥/kWh), does not affect state evolution
     """
 
     c_air: float = 0.6       # kWh/K
@@ -74,13 +74,13 @@ class RCBuildingModel:
 
 @dataclass
 class TwoZoneRCBuildingModel:
-    """两区域 RC 建筑热工模型，两个房间通过隔墙耦合。
+    """Two-zone RC building thermal model with a coupled partition wall.
 
-    状态:
+    States:
         T_air_A, T_wall_A, T_air_B, T_wall_B, T_partition
-    控制:
+    Control:
         Q_hvac_A, Q_hvac_B
-    外部:
+    External:
         T_out, solar_A, solar_B, occ_A, occ_B, price
     """
 
@@ -168,9 +168,9 @@ class TwoZoneRCBuildingModel:
 
 @dataclass
 class HVACModel:
-    """空调系统模型：将热功率转换为电功率，并给出控制边界。
+    """HVAC system model: converts heat power to electric power and provides control bounds.
 
-    支持多个独立空调/区域，每个控制分量的边界相同。
+    Supports multiple independent units/zones with identical per-unit bounds.
     """
 
     q_min: float = -6.0   # 每台最大制冷热功率 kW
@@ -205,7 +205,7 @@ class HVACModel:
 
 
 class Simulator:
-    """数字孪生仿真器，封装模型步进与轨迹展开。"""
+    """Digital-twin simulator: wraps model stepping and trajectory rollout."""
 
     def __init__(
         self,

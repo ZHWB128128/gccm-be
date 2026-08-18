@@ -1,4 +1,4 @@
-"""自指回路：模型监控自身预测误差，并反馈给决策层。"""
+"""Self-referential loop: the model monitors its own prediction error and feeds it back to the decision layer."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,10 +9,10 @@ import numpy as np
 
 @dataclass
 class SelfMonitor:
-    """轻量自指误差模型。
+    """Lightweight self-referential error model.
 
-    每个控制周期接收实际状态与预测状态的残差，
-    用滑动平均/AR(1) 预测未来误差是否发散。
+    Receives the residual between actual and predicted state each control cycle,
+    and predicts whether future error diverges using moving average / AR(1).
     """
 
     window: int = 24

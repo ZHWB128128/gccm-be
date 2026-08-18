@@ -1,11 +1,11 @@
-"""GCCM-BE: 建筑能源几何因果推理引擎.
+"""GCCM-BE: Geometry-based Causal Control Model for Building Energy.
 
-分层架构:
-    app        -> 应用层
-    decision   -> 决策与诊断层
-    normative  -> 规范层
-    geometry   -> 几何推理核心层
-    physics    -> 物理世界仿真层
+Layered architecture:
+    app        -> application layer
+    decision   -> decision & diagnosis layer
+    normative  -> normative layer
+    geometry   -> geometric reasoning core
+    physics    -> physical world simulation layer
 """
 
 __version__ = "0.1.0"

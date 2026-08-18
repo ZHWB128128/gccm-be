@@ -1,4 +1,4 @@
-"""应用层 API 服务：使用标准库提供轻量 REST 接口。"""
+"""Application-layer API service: lightweight REST interface using the standard library."""
 from __future__ import annotations
 
 import json
@@ -14,7 +14,7 @@ ALLOWED_MODES = ["comfort", "balanced", "energy", "demand_response"]
 
 
 class SimpleAPI:
-    """极简 API 封装，适用于边缘演示环境（线程安全）。"""
+    """Minimal API wrapper for edge demo environments (thread-safe)."""
 
     def __init__(self, engine: GCCMEngine) -> None:
         self.engine = engine

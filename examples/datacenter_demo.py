@@ -162,28 +162,29 @@ def main() -> None:
     # 图表
     fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(11, 9), sharex=True)
     t = gccm["times"]
-    ax1.plot(t, rule["t_aisle"], color="gray", ls="--", lw=1.2, label="规则控制 冷通道")
-    ax1.plot(t, gccm["t_aisle"], color="tab:red", lw=1.6, label="GCCM 冷通道")
-    ax1.plot(t, gccm["t_tank"], color="tab:blue", lw=1.2, label="GCCM 蓄冷罐")
-    ax1.axhspan(COMFORT_MIN, COMFORT_MAX, color="green", alpha=0.1, label="守带 22~27°C")
-    ax1.set_ylabel("温度 (°C)")
+    ax1.plot(t, rule["t_aisle"], color="gray", ls="--", lw=1.2, label="Rule control: cold aisle")
+    ax1.plot(t, gccm["t_aisle"], color="tab:red", lw=1.6, label="GCCM: cold aisle")
+    ax1.plot(t, gccm["t_tank"], color="tab:blue", lw=1.2, label="GCCM: storage tank")
+    ax1.axhspan(COMFORT_MIN, COMFORT_MAX, color="green", alpha=0.1, label="Comfort band 22-27°C")
+    ax1.set_ylabel("Temperature (°C)")
     ax1.legend(loc="upper right", fontsize=8)
     ax1.grid(alpha=0.3)
 
-    ax2.step(t, gccm["price"], where="post", color="tab:purple", lw=1.2, label="电价")
-    ax2.set_ylabel("电价 (元/kWh)")
+    ax2.step(t, gccm["price"], where="post", color="tab:purple", lw=1.2, label="Price")
+    ax2.set_ylabel("Price (¥/kWh)")
     ax2.legend(loc="upper right", fontsize=8)
     ax2.grid(alpha=0.3)
 
-    ax3.step(t, gccm["q"], where="post", color="tab:red", lw=1.0, label="GCCM 制冷功率")
-    ax3.step(t, rule["q"], where="post", color="gray", lw=1.0, ls="--", label="规则控制 制冷功率")
-    ax3.set_xlabel("时刻 (h)")
-    ax3.set_ylabel("制冷功率 (kW)")
+    ax3.step(t, gccm["q"], where="post", color="tab:red", lw=1.0, label="GCCM cooling power")
+    ax3.step(t, rule["q"], where="post", color="gray", lw=1.0, ls="--", label="Rule control cooling power")
+    ax3.set_xlabel("Time (h)")
+    ax3.set_ylabel("Cooling power (kW)")
     ax3.legend(loc="upper right", fontsize=8)
     ax3.grid(alpha=0.3)
 
-    fig.suptitle(f"数据中心冷却 MPC：省电 {100 * (rc - gc) / rc:.1f}% / 削峰 {100 * (rp - gp) / rp:.1f}%"
-                 f"（谷时蓄冷、峰时放冷）", fontsize=12)
+    fig.suptitle(f"Data center cooling MPC: saves {100 * (rc - gc) / rc:.1f}% cost / "
+                 f"shaves {100 * (rp - gp) / rp:.1f}% peak (charge at valley, discharge at peak)",
+                 fontsize=12)
     fig.tight_layout()
     out_path = os.path.join(args.output, "datacenter_cooling.png")
     fig.savefig(out_path, dpi=150)

@@ -1,4 +1,4 @@
-"""外部输入模块：天气预报、电价、室内热源等统一数据接口。"""
+"""External input module: unified data interface for weather forecast, price, internal heat, etc."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -11,7 +11,7 @@ from ..types import ExternalInput
 
 
 class ExternalInputProvider(ABC):
-    """外部输入数据源抽象接口。"""
+    """Abstract interface for external input data sources."""
 
     @abstractmethod
     def get(self, time_h: float, horizon: int = 1) -> List[ExternalInput]:
@@ -21,7 +21,7 @@ class ExternalInputProvider(ABC):
 
 @dataclass
 class MockExternalInputProvider(ExternalInputProvider):
-    """用于演示的确定性外部输入源。"""
+    """Deterministic external input source for demos."""
 
     t_out_base: float = 30.0
     t_out_amp: float = 5.0

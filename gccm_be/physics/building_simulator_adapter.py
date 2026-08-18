@@ -1,4 +1,4 @@
-"""外部建筑仿真适配器：连接 EnergyPlus/BOPTEST/真实建筑仿真器。"""
+"""External building simulator adapter: connects EnergyPlus/BOPTEST/real building simulators."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -11,9 +11,9 @@ from .models import Simulator, TwoZoneRCBuildingModel, HVACModel
 
 
 class BuildingSimulatorAdapter:
-    """外部建筑仿真器统一接口。
+    """Unified external building simulator interface.
 
-    真实实现可对接 EnergyPlus、BOPTEST、Modelica 等。
+    Real implementations may connect EnergyPlus, BOPTEST, Modelica, etc.
     """
 
     def reset(self, initial_state: SystemState) -> None:
@@ -32,9 +32,9 @@ class BuildingSimulatorAdapter:
 
 @dataclass
 class EnergyPlusAdapterStub(BuildingSimulatorAdapter):
-    """EnergyPlus 适配器模拟实现。
+    """Stub implementation of an EnergyPlus adapter.
 
-    实际部署时，将内部 simulator 替换为 EnergyPlus 的 Python API 调用。
+    In production, replace the internal simulator with EnergyPlus Python API calls.
     """
 
     simulator: Simulator = None  # type: ignore[assignment]

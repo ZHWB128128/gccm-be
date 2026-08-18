@@ -1,4 +1,4 @@
-"""CasADi + IPOPT 求解器：带硬约束的非线性 MPC。"""
+"""CasADi + IPOPT solver: nonlinear MPC with hard constraints."""
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
@@ -82,7 +82,7 @@ def _casadi_step(building, x, u, w, dt):
 
 @dataclass
 class CasadiGeodesicSolver:
-    """使用 CasADi + IPOPT 的硬约束测地线求解器。"""
+    """Hard-constrained geodesic solver using CasADi + IPOPT."""
 
     simulator: object
     landscape: EnergyLandscape

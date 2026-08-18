@@ -104,12 +104,12 @@ def run_gccm_loop(sim, provider, horizon: int = 24) -> tuple[SimResult, list]:
 
 def plot_compare_temperature(gccm: SimResult, pid: SimResult, out: str) -> None:
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.axhspan(COMFORT_MIN, COMFORT_MAX, color="green", alpha=0.12, label="舒适带 25~27°C")
-    ax.plot(pid.times_h, pid.t_air, color="gray", ls="--", lw=1.5, label="严格舒适 PID")
+    ax.axhspan(COMFORT_MIN, COMFORT_MAX, color="green", alpha=0.12, label="Comfort band 25-27°C")
+    ax.plot(pid.times_h, pid.t_air, color="gray", ls="--", lw=1.5, label="Strict comfort PID")
     ax.plot(gccm.times_h, gccm.t_air, color="tab:red", lw=2, label="GCCM")
-    ax.set_xlabel("时刻 (h)")
-    ax.set_ylabel("室温 (°C)")
-    ax.set_title("24h 室温对比（GCCM vs 严格舒适 PID）")
+    ax.set_xlabel("Time (h)")
+    ax.set_ylabel("Room temp (°C)")
+    ax.set_title("24h temperature comparison (GCCM vs strict comfort PID)")
     ax.legend(loc="upper left")
     ax.grid(alpha=0.3)
     fig.tight_layout()
@@ -119,19 +119,19 @@ def plot_compare_temperature(gccm: SimResult, pid: SimResult, out: str) -> None:
 
 def plot_compare_power_price(gccm: SimResult, pid: SimResult, out: str) -> None:
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 7), sharex=True)
-    ax1.bar(pid.times_h, pid.q_hvac, width=STEP_H, color="gray", alpha=0.6, label="PID 制冷功率")
-    ax1.bar(gccm.times_h, gccm.q_hvac, width=STEP_H, color="tab:red", alpha=0.8, label="GCCM 制冷功率")
-    ax1.set_ylabel("制冷功率 (kW)")
+    ax1.bar(pid.times_h, pid.q_hvac, width=STEP_H, color="gray", alpha=0.6, label="PID cooling power")
+    ax1.bar(gccm.times_h, gccm.q_hvac, width=STEP_H, color="tab:red", alpha=0.8, label="GCCM cooling power")
+    ax1.set_ylabel("Cooling power (kW)")
     ax1.legend()
     ax1.grid(alpha=0.3)
-    ax2.step(gccm.times_h, gccm.price, where="post", color="tab:blue", lw=1.5, label="电价")
+    ax2.step(gccm.times_h, gccm.price, where="post", color="tab:blue", lw=1.5, label="Price")
     ax2.fill_between(gccm.times_h, 0, gccm.price, where=gccm.price >= np.percentile(gccm.price, 66),
-                     color="orange", alpha=0.25, label="峰时")
-    ax2.set_xlabel("时刻 (h)")
-    ax2.set_ylabel("电价 (元/kWh)")
+                     color="orange", alpha=0.25, label="Peak hours")
+    ax2.set_xlabel("Time (h)")
+    ax2.set_ylabel("Price (¥/kWh)")
     ax2.legend()
     ax2.grid(alpha=0.3)
-    fig.suptitle("24h 制冷功率与电价（GCCM 谷时预冷蓄冷、峰时少用）")
+    fig.suptitle("24h cooling power & price (GCCM pre-cools in valley hours, reduces peak use)")
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
@@ -146,11 +146,11 @@ def plot_compare_metrics(gccm: SimResult, pid: SimResult, out: str) -> None:
 
     gc = metrics(gccm)
     pp = metrics(pid)
-    labels = ["电费 (元)", "违温 (%)", "峰值功率 (kW)"]
+    labels = ["Cost (¥)", "Violation (%)", "Peak power (kW)"]
     x = np.arange(3)
     width = 0.32
     fig, ax = plt.subplots(figsize=(8, 4.5))
-    b1 = ax.bar(x - width / 2, pp, width, color="gray", alpha=0.75, label="严格舒适 PID")
+    b1 = ax.bar(x - width / 2, pp, width, color="gray", alpha=0.75, label="Strict comfort PID")
     b2 = ax.bar(x + width / 2, gc, width, color="tab:red", alpha=0.85, label="GCCM")
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
@@ -158,7 +158,7 @@ def plot_compare_metrics(gccm: SimResult, pid: SimResult, out: str) -> None:
         for b in bars:
             ax.annotate(f"{b.get_height():.2f}", (b.get_x() + b.get_width() / 2, b.get_height()),
                         ha="center", va="bottom", fontsize=9)
-    ax.set_title(f"指标对比（GCCM 省电 {100 * (pp[0] - gc[0]) / pp[0]:.1f}%）")
+    ax.set_title(f"Metrics comparison (GCCM saves {100 * (pp[0] - gc[0]) / pp[0]:.1f}%)")
     ax.legend()
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
@@ -176,18 +176,18 @@ def plot_diagnosis_timeline(gccm_result: SimResult, diag: dict, out: str) -> Non
     ax1.step(t, [mode_idx[m] for m in modes], where="post", color="tab:purple", lw=1.5)
     ax1.set_yticks(list(mode_idx.values()))
     ax1.set_yticklabels(list(mode_idx.keys()))
-    ax1.set_ylabel("运行模式")
+    ax1.set_ylabel("Mode")
     ax1.grid(alpha=0.3)
-    ax2.plot(t, confs, color="tab:green", lw=1.5, label="置信度")
+    ax2.plot(t, confs, color="tab:green", lw=1.5, label="Confidence")
     if any(undec):
         ux = [t[i] for i, u in enumerate(undec) if u]
-        ax2.scatter(ux, [0.05] * len(ux), marker="x", color="red", s=40, label="不可判定")
-    ax2.set_xlabel("时刻 (h)")
-    ax2.set_ylabel("置信度")
+        ax2.scatter(ux, [0.05] * len(ux), marker="x", color="red", s=40, label="Undecidable")
+    ax2.set_xlabel("Time (h)")
+    ax2.set_ylabel("Confidence")
     ax2.set_ylim(-0.05, 1.05)
     ax2.legend(loc="upper right")
     ax2.grid(alpha=0.3)
-    fig.suptitle("GCCM 决策诊断时间线（模式 / 置信度 / 不可判定）")
+    fig.suptitle("GCCM decision timeline (mode / confidence / undecidable)")
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)

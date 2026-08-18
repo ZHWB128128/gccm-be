@@ -1,4 +1,4 @@
-"""重整化群流：多尺度粗粒化与异常放大检测。"""
+"""Renormalization-group flow: multi-scale coarse graining and anomaly amplification detection."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -20,7 +20,7 @@ def coarse_grain(room_temps: Sequence[float]) -> dict:
 
 @dataclass
 class RenormalizationFlow:
-    """两个尺度：微观房间异常 -> 宏观建筑指标。"""
+    """Two scales: micro room anomalies -> macro building indicators."""
 
     micro_threshold: float = 27.0
     macro_amplification_ratio: float = 0.5

@@ -1,4 +1,4 @@
-"""公理突变触发器：监测异常事件并触发模式切换。"""
+"""Axiom-mutation triggers: monitor abnormal events and trigger mode switches."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -10,7 +10,7 @@ from ..types import ExternalInput, SystemState
 
 @dataclass
 class AxiomMutationTrigger:
-    """规则化触发条件，后续可扩展为学习式触发。"""
+    """Rule-based trigger conditions; extensible to learned triggers later."""
 
     error_threshold: float = 0.8
     price_spike_threshold: float = 1.2

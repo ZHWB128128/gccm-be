@@ -1,4 +1,4 @@
-"""显式度量张量：由规范层权重生成，而非固定常数。"""
+"""Explicit metric tensor: generated from normative weights rather than fixed constants."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -14,9 +14,9 @@ if TYPE_CHECKING:
 
 @dataclass
 class MetricTensor:
-    """在状态空间上定义对角度量 g(z)。
+    """Defines a diagonal metric g(z) on the state space.
 
-    当前实现为对角度量，后续可扩展为低秩或全度量。
+    Currently diagonal; extensible to low-rank or full metric later.
     """
 
     comfort_weight: float = 1.0

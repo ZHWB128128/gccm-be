@@ -1,4 +1,4 @@
-"""置信度评估器：综合误差、曲率、模型失配度计算策略置信水平。"""
+"""Confidence evaluator: combine prediction error, curvature and model mismatch into a strategy confidence level."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,7 +10,7 @@ from ..geometry.curvature import CurvatureAnalysis
 
 @dataclass
 class ConfidenceEvaluator:
-    """简单加权置信度模型。"""
+    """Simple weighted confidence model."""
 
     error_scale: float = 2.0
     curvature_scale: float = 0.02

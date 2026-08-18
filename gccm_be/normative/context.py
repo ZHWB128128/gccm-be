@@ -1,4 +1,4 @@
-"""上下文标签生成器：将情境信息抽象为标签。"""
+"""Context label generator: abstract situational information into labels."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -21,7 +21,7 @@ class ContextLabels:
 
 
 class ContextLabeler:
-    """根据天气、电价、用户偏好等生成上下文标签。"""
+    """Generates context labels from weather, price, user preferences, etc."""
 
     def __init__(
         self,

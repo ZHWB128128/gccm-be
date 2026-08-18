@@ -1,4 +1,4 @@
-"""可辩护的因果链：通过反事实仿真解释“几何结构 -> 控制 -> 结果”。"""
+"""Defensible causal chain: explain 'geometric structure -> control -> outcome' via counterfactual simulation."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -28,10 +28,10 @@ class CounterfactualResult:
 
 
 class CounterfactualAnalyzer:
-    """反事实分析器。
+    """Counterfactual analyzer.
 
-    在相同外部输入和初始状态下，替换控制策略，比较结果差异。
-    这可以支撑“规范权重/度量 -> 控制策略 -> 能耗/舒适”的可解释因果链。
+    Replaces the control policy under identical external inputs and initial state, comparing outcome differences.
+    This supports an interpretable causal chain: 'normative weights / metric -> control policy -> energy / comfort'.
     """
 
     def __init__(

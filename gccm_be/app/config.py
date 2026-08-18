@@ -1,6 +1,6 @@
-"""从 JSON 配置文件构建 GCCMEngine（产品化：换楼宇不换代码）。
+"""Build GCCMEngine from a JSON config file (productized: change building without changing code).
 
-示例配置见 examples/config.json。
+See examples/config.json.
 """
 from __future__ import annotations
 
