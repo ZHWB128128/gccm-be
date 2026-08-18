@@ -1,0 +1,35 @@
+{
+  "building": {
+    "c_air": 0.6,
+    "c_wall": 4.0,
+    "r_air": 0.8,
+    "r_wall": 2.0,
+    "solar_gain": 0.05,
+    "dt": 0.0833333
+  },
+  "hvac": {
+    "q_min": -8.0,
+    "q_max": 8.0,
+    "cop_heating": 3.2,
+    "cop_cooling": 3.8
+  },
+  "controller": {
+    "horizon": 24,
+    "comfort_min": 25.0,
+    "comfort_max": 27.0,
+    "setpoint": 26.0,
+    "comfort_weight": 5.0,
+    "energy_weight": 0.5,
+    "smooth_weight": 0.1,
+    "comfort_margin": 0.3,
+    "peak_price_threshold": 1.0,
+    "peak_energy_penalty": 1.5,
+    "enforce_comfort_constraints": true,
+    "use_kinetic": true,
+    "safe_control_mode": "feedback"
+  },
+  "api": {
+    "host": "0.0.0.0",
+    "port": 8080
+  }
+}

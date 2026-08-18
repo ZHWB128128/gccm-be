@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# 测试与工具缓存
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 本地产物（演示图表、临时脚本、日志）
+output/
+*.log
+*.pid
+
+# 编辑器/系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
