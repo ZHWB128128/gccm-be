@@ -114,7 +114,7 @@ gccm_be/
 └── engine.py     # 顶层编排引擎（滚动时域 MPC + 安全降级）
 examples/         # 28 个示例/实验脚本（见 examples/README.md）
 tests/            # 38 个测试（行为级断言，CasADi 缺失自动跳过）
-docs/             # 架构 / 技术报告 / 数学定位 / 审查报告
+docs/             # 架构 / 技术报告 / 数学定位 / 图表
 ```
 
 ## 📚 文档

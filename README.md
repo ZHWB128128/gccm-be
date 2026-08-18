@@ -117,7 +117,7 @@ gccm_be/
 └── engine.py     # top-level orchestration (rolling MPC + safety degradation)
 examples/         # 28 example/experiment scripts (see examples/README.md)
 tests/            # 38 behavior-level tests (CasADi tests auto-skip when absent)
-docs/             # architecture / technical report / math positioning / review
+docs/             # architecture / technical report / math positioning / images
 ```
 
 ## 📚 Documentation
