@@ -1,0 +1,4 @@
+# 统一 LF 换行（Windows 开发者也一致）
+* text=auto eol=lf
+*.png binary
+*.pyc binary

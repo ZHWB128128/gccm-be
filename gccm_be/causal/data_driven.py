@@ -1,0 +1,43 @@
+"""Data-driven causal inference: estimate SCM parameters from intervention data."""
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+
+from .scm import StructuralCausalModel
+
+
+@dataclass
+class DataDrivenSCM:
+    """Estimate a linear SCM from multiple do-intervention datasets."""
+
+    equations: dict[str, dict[str, float]] = None  # type: ignore[assignment]
+    intercepts: dict[str, float] = None  # type: ignore[assignment]
+
+    def fit(self, data: list[dict[str, float]]) -> DataDrivenSCM:
+        """data 是观测/干预样本列表，每个样本包含所有变量。"""
+        variables = list(data[0].keys())
+        self.equations = {}
+        self.intercepts = {}
+        for idx, var in enumerate(variables):
+            parents = variables[:idx]  # 只使用因果顺序之前的变量作为父节点
+            X = np.array([[d[p] for p in parents] for d in data])
+            y = np.array([d[var] for d in data])
+            A = np.column_stack([X, np.ones(len(y))])
+            coef, _, _, _ = np.linalg.lstsq(A, y, rcond=None)
+            self.equations[var] = {p: float(c) for p, c in zip(parents, coef[:-1])}
+            self.intercepts[var] = float(coef[-1])
+        return self
+
+    def to_scm(self, noise: dict[str, float] = None) -> StructuralCausalModel:
+        """转换为可执行 SCM。"""
+        eqs = {}
+        for var, parent_coef in self.equations.items():
+            parents = list(parent_coef.keys())
+            coefs = list(parent_coef.values())
+            intercept = self.intercepts[var]
+            def make_func(ps=parents, cs=coefs, b=intercept):
+                return lambda v: b + sum(c * v[p] for c, p in zip(cs, ps))
+            eqs[var] = make_func()
+        return StructuralCausalModel(equations=eqs, noise=noise or {})

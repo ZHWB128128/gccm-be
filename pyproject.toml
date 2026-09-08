@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gccm-be"
+version = "0.1.0"
+description = "建筑能源几何因果推理引擎 (GCCM-BE)：带安全兜底的滚动时域 MPC 控制引擎"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "GCCM-BE contributors" }]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=1.23",
+    "scipy>=1.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7",
+]
+robust = [
+    "casadi>=3.6",
+]
+
+[project.urls]
+Repository = "https://github.com/ZHWB128128/gccm-be"
+
+[project.scripts]
+gccm-be = "gccm_be.app.launcher:main"
+
+[tool.setuptools.packages.find]
+include = ["gccm_be*"]
+
+[tool.ruff.lint]
+# 安全类(E9/F63/F7/F82)在 CI 强制;以下为有意保留的模式:
+# BLE001/S110 = 安全降级链的兜底 except(防御性设计,非疏忽)
+ignore = ["BLE001", "S110", "RUF013", "TRY004", "SIM102", "UP035"]

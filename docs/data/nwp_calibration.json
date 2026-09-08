@@ -1,0 +1,22 @@
+{
+  "source": "open-meteo 30.00,120.00 last 14d",
+  "measured": {
+    "n_hours": 360,
+    "t_mae_K": 1.235277777777778,
+    "t_p90_K": 3.099999999999998,
+    "t_p95_K": 4.600000000000001,
+    "t_bias_K": -0.1980555555555556,
+    "r_mae_rel": 0.21421718660421718,
+    "r_p90_rel": 0.655688622754491
+  },
+  "calibration": {
+    "recommended_delta": 0.4,
+    "basis": {
+      "t_p95_K": 4.600000000000001,
+      "safety": 1.5,
+      "delta_from_temp": 0.863,
+      "delta_from_solar": 0.984
+    }
+  },
+  "generated_at": "2026-09-04T06:41:20"
+}

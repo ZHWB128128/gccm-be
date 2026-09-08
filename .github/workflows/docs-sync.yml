@@ -1,0 +1,43 @@
+name: docs-sync
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    paths: ["README.md", "README.zh-CN.md"]
+
+jobs:
+  readme-parity:
+    # 中英 README 结构同步校验：章节标题必须镜像，双语漂移直接挂
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check README structure parity (en/zh)
+        shell: python
+        run: |
+          import re, sys
+
+          def headings(path):
+              return [len(m.group(1)) for line in open(path, encoding="utf-8")
+                      if (m := re.match(r"^(#{1,3}) (.+)$", line))]
+
+          en, zh = headings("README.md"), headings("README.zh-CN.md")
+          if en != zh:
+              print("README.md headings:", en)
+              print("README.zh-CN.md headings:", zh)
+              sys.exit("中英 README 章节结构不一致——请同步修改两个文件")
+
+          def counts(path):
+              s = open(path, encoding="utf-8").read()
+              return {
+                  "examples": re.search(r"(\d+) example", s) or re.search(r"(\d+) 个示例", s),
+                  "tests": re.search(r"(\d+) behavior-level tests", s) or re.search(r"(\d+) 项行为级测试", s),
+              }
+
+          ce, cz = counts("README.md"), counts("README.zh-CN.md")
+          for key in ("examples", "tests"):
+              a = ce[key].group(1) if ce[key] else "?"
+              b = cz[key].group(1) if cz[key] else "?"
+              if a != b:
+                  sys.exit(f"中英 README 的 {key} 计数不一致: {a} vs {b}")
+          print(f"README en/zh in sync (examples={ce['examples'].group(1)}, tests={ce['tests'].group(1)})")

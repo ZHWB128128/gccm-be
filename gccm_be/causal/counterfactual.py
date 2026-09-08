@@ -1,0 +1,78 @@
+"""Defensible causal chain: explain 'geometric structure -> control -> outcome' via counterfactual simulation."""
+from __future__ import annotations
+
+from collections.abc import Callable
+from dataclasses import dataclass
+
+import numpy as np
+
+from ..physics.models import Simulator
+from ..types import ControlInput, ExternalInput, SystemState
+from .scm import StructuralCausalModel
+
+
+@dataclass
+class CounterfactualResult:
+    name: str
+    total_cost: float
+    comfort_violation: float
+    peak_power: float
+
+    def as_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "total_cost": self.total_cost,
+            "comfort_violation": self.comfort_violation,
+            "peak_power": self.peak_power,
+        }
+
+
+class CounterfactualAnalyzer:
+    """Counterfactual analyzer.
+
+    Replaces the control policy under identical external inputs and initial state, comparing outcome differences.
+    This supports an interpretable causal chain: 'normative weights / metric -> control policy -> energy / comfort'.
+    """
+
+    def __init__(
+        self,
+        simulator: Simulator,
+        initial_state: SystemState,
+        externals: list[ExternalInput],
+        dt: float = 0.25,
+        comfort_min: float = 25.0,
+        comfort_max: float = 27.0,
+        scm: StructuralCausalModel | None = None,
+    ) -> None:
+        self.simulator = simulator
+        self.initial_state = initial_state
+        self.externals = externals
+        self.dt = dt
+        self.comfort_min = comfort_min
+        self.comfort_max = comfort_max
+        self.scm = scm
+
+    def causal_effect(self, var: str, do_a: dict, do_b: dict) -> float:
+        """如果配置了 SCM，则返回 do(do_a) 与 do(do_b) 对 var 的因果效应。"""
+        if self.scm is None:
+            raise ValueError("SCM not configured")
+        return self.scm.effect(var, do_a, do_b)
+
+    def run_policy(self, name: str, policy: Callable[[SystemState, float], ControlInput]) -> CounterfactualResult:
+        state = self.initial_state.copy()
+        t = 0.0
+        temps = []
+        powers = []
+        prices = []
+        for w in self.externals:
+            control = policy(state, t)
+            state = self.simulator.step(state, control, w, self.dt)
+            temps.append(state.x[0] if state.dim > 1 else state.x[0])
+            powers.append(self.simulator.hvac.electrical_power(control))
+            prices.append(w.price)
+            t += self.dt
+        temps = np.array(temps)
+        cost = float(np.sum(np.array(powers) * np.array(prices) * self.dt))
+        viol = float(np.mean((temps > self.comfort_max) | (temps < self.comfort_min)) * 100.0)
+        peak = float(np.max(powers))
+        return CounterfactualResult(name, cost, viol, peak)
