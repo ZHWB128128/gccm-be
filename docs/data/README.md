@@ -56,3 +56,9 @@ bestest_hydronic_heat_pump）；③空气系统测试台 multizone_office_simple
 `gccm_be/app/pilot_log.violations_occupied()`（7~19h）。全时段口径下约 90% 的
 "违温"来自夜间无人漂移（ABAB 与 cw 扫描两轮演练反复证实），正式 M&V 以
 有人时段口径为准。
+
+## EKF 状态观测器试验台验证（bestest_air）
+
+`boptest_ekf_validation.csv` / `boptest_ekf_summary.json`：仅用带噪室温
+（σ=0.2K）驱动 EKF 估计墙温等隐状态，后半程一步温度预测误差 1.047K，
+相比错墙温初值的开环预测（10.843K）改善 90%。试点闭环的状态来源由此验证。

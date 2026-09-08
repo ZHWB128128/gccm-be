@@ -159,9 +159,10 @@ KPI 上 24 seeds 显著（−0.41°C，p<0.0001），gain 单调饱和结构可�
 
 1. **实测数据为零**——全部数字来自仿真器；实楼试点（IPMVP）是下一里程碑，
    就绪清单见 [docs/PILOT_PLAN.md](docs/PILOT_PLAN.md) §10。
-2. **状态观测已就绪但未实测校验**——`physics/observer.py` EKF 从室温传感器
-   估计 T_wall 等隐状态（试验收敛 <0.5K），试点前需与真实传感器联调；
-   试点闭环应使用观测器输出而非假设全状态可测。
+2. **状态观测已过试验台验证**——`physics/observer.py` EKF 在 BOPTEST
+   bestest_air 上完成闭环验证（`docs/data/boptest_ekf_summary.json`）：仅用
+   带噪 T_air 测量（σ=0.2K），后半程一步温度预测误差 **1.047K**，相比错墙温
+   初值的开环预测（10.843K）**改善 90%**；试点前剩余工作仅剩与真实传感器联调。
 3. **供暖场景性能未达标**——水暖设定点-only 执行器权限不足（能耗 +182%），
    直接执行机构通道语义需读 Modelica 源码专门研究。
 4. **HVAC 类型适配成本线性**——registry 收敛了 config 层，CasADi 分支/辨识结构/
