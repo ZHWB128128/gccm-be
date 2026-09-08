@@ -62,3 +62,10 @@ bestest_hydronic_heat_pump）；③空气系统测试台 multizone_office_simple
 `boptest_ekf_validation.csv` / `boptest_ekf_summary.json`：仅用带噪室温
 （σ=0.2K）驱动 EKF 估计墙温等隐状态，后半程一步温度预测误差 1.047K，
 相比错墙温初值的开环预测（10.843K）改善 90%。试点闭环的状态来源由此验证。
+
+## 修复后代码全量复现(2026-09-08)
+
+三核心实验在 CasADi 终端代价修复/辨识换算修正/数据中心诚实物理之后重跑:
+fair_compare 13.8%(逐位一致)、ABAB 46.1%/26.3%(逐位一致)、mismatch 封顶
+27.9°C(一致)。原始 CSV:`boptest_direct_compare.csv`、`boptest_abab_drill.csv`、
+`boptest_mismatch.csv`。
