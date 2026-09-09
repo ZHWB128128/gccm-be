@@ -615,8 +615,8 @@ class GCCMEngine:
             self._last_predicted_air = None
         else:
             predicted_next_state = trajectory.states[1] if len(trajectory.states) > 1 else state.copy()
-            # 记录预测的主温区值：下一步实测后即可算"已实现预测误差"喂给置信度校准
-            self._last_predicted_air = float(predicted_next_state.x[0])
+            # 记录预测全状态：下一步实测后算 max-norm 已实现误差（与 evaluate 同口径）
+            self._last_predicted_state = predicted_next_state.x.copy()
 
         return ControlDecision(
             control=first_control,
@@ -691,10 +691,11 @@ class GCCMEngine:
             self.rc_identifier.update(state, control, external, next_state, dt)
         # 已实现误差 → 置信度校准历史（conformal 分位数）
         try:
-            pred = self._last_predicted_air
-            if pred is not None:
+            pred_state = self._last_predicted_state
+            if pred_state is not None:
+                # 口径统一：与 evaluate() 的 prediction_error 同为全状态 max-norm
                 self.diagnoser.confidence_evaluator.observe_error(
-                    abs(float(next_state.x[0]) - pred))
+                    float(np.max(np.abs(next_state.x - pred_state))))
         except Exception:
             pass
         # 双区：逐区喂样本（rc_identifier 即 A 区，避免重复更新）
@@ -733,8 +734,10 @@ class GCCMEngine:
             return False
         # 候选模型误差必须低于当前模型近期误差，才允许更新
         current_err = self.self_monitor.recent_mean(6) if self.self_monitor is not None else float("inf")
-        rc_err = float(np.mean(np.abs(self.rc_identifier.history[-20:])))
-        if np.isfinite(current_err) and rc_err >= current_err * 0.9:
+        # 单位统一（量纲 bug 修复）: history 存 dT/dt 残差（K/h），乘回 dt → K
+        dt_for_err = self.dt or self.simulator.building.dt
+        rc_err = float(np.mean(np.abs(self.rc_identifier.history[-20:]))) * dt_for_err
+        if np.isfinite(current_err) and current_err > 0 and rc_err >= current_err * 0.9:
             return False
         params = self.rc_identifier.parameters()
         if not self._rc_params_plausible(params):
@@ -788,11 +791,13 @@ class GCCMEngine:
         idents = self.rc_identifiers_by_zone
         if not idents or any(len(i.history) < min_samples for i in idents.values()):
             return False
+        dt_for_err = self.dt or self.simulator.building.dt
         current_err = self.self_monitor.recent_mean(6) if self.self_monitor is not None else float("inf")
         zone_params: dict[str, dict] = {}
         for zid, ident in idents.items():
-            rc_err = float(np.mean(np.abs(ident.history[-20:])))
-            if np.isfinite(current_err) and rc_err >= current_err * 0.9:
+            # 单位统一（量纲 bug 修复）: K/h × dt → K
+            rc_err = float(np.mean(np.abs(ident.history[-20:]))) * dt_for_err
+            if np.isfinite(current_err) and current_err > 0 and rc_err >= current_err * 0.9:
                 return False
             params = ident.parameters()
             if not self._rc_params_plausible(params):

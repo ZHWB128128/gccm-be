@@ -208,11 +208,17 @@ class GeodesicSolver:
                 if self.use_riemannian_control:
                     dt = self.dt
                     delta = next_state.x - state.x
-                    # 控制对 T_air 的近似贡献
+                    # 控制贡献向量:Q 注入各空气温度维度(按标签定位,多区/多设备感知)
                     c_air = getattr(self.simulator.building, "c_air", 1.0)
                     b = np.zeros(state.dim)
-                    b[0] = dt / c_air
-                    deviation = delta - b * float(u.u[0])
+                    n_u = min(u.u.size, sum(1 for lab in state.labels
+                                            if str(lab).startswith("T_air")))
+                    for j in range(n_u):
+                        idx = state.labels.index(
+                            [lab for lab in state.labels
+                             if str(lab).startswith("T_air")][j])
+                        b[idx] = dt / c_air
+                    deviation = delta - b @ u.u[:n_u]
                     total += self.riemannian_control_weight * 0.5 * float(deviation.T @ self.landscape.metric(state) @ deviation) / (dt * dt)
                 if self.use_riemannian and self.geodesic_penalty_weight > 0.0:
                     dt = self.dt
@@ -292,7 +298,8 @@ class GeodesicSolver:
         costs.append(float(terminal))
         total += terminal
 
-        # nit==0 仅表示"未迭代"（如初值即最优），不算求解成功——避免掩盖停滞
+        # 求解成功与否以 result.success 为准；nit==0（未迭代，如初值即最优）
+        # 不会被误判为成功——避免掩盖停滞
         success = bool(result.success)
         return Trajectory(
             controls=controls,

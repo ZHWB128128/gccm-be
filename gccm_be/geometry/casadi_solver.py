@@ -198,8 +198,11 @@ class CasadiGeodesicSolver:
 
         metric_diag = None
         if self.use_kinetic:
-            dummy_state = SystemState(np.zeros(n_x), list(self.landscape.manifold.labels))
-            metric_diag = np.diag(self.landscape.metric(dummy_state))
+            # P0 修正：度量取在真实状态处（landscape.kinetic_term 同样警告过
+            # 零点 dummy 在 state_dependence≠0 时塌缩到近零，使动能项失效）
+            curr_state = SystemState(np.array(initial_state.x, dtype=float),
+                                     list(self.landscape.manifold.labels))
+            metric_diag = np.diag(self.landscape.metric(curr_state))
 
         def comfort_expr(value: ca.MX, label: str, setpoint: float, scale: float) -> ca.MX:
             # 每区独立舒适带优先（bounds_for 内含标量回退），无边界时用软带

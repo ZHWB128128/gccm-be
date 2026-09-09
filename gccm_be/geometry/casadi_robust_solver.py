@@ -80,6 +80,7 @@ class CasadiRobustGeodesicSolver:
 
         weights = self.landscape.weights
         setpoints = self.landscape.setpoints
+        below_pen = getattr(self.landscape, "below_comfort_penalty", 1.0)
         total_cost = 0.0
 
         # 电价索引：优先按 price 标签定位（两区域 6 维时 price 在最后，w[3] 是 occ_A）
@@ -128,21 +129,30 @@ class CasadiRobustGeodesicSolver:
                         excess += ca.fmax(0.0, lo - x_next[ai])
                     total_cost += self.robust_penalty * excess * excess
 
-                # 舒适代价
+                # 舒适代价（与名义求解器对齐：每区 bounds_for 优先，软带回退）
                 comfort = 0.0
                 for i, lab in enumerate(self.landscape.manifold.labels):
                     if lab in setpoints:
                         scale = self.landscape.manifold.scale.get(lab, 1.0)
-                        dev = ca.fabs(X[k][i] - setpoints[lab])
-                        excess = ca.fmax(0.0, dev - self.landscape.comfort_band)
+                        bnds = self.landscape.bounds_for(lab)
+                        if bnds is not None:
+                            lo_b, hi_b = bnds
+                            excess = (ca.fmax(0.0, X[k][i] - hi_b)
+                                      + ca.fmax(0.0, lo_b - X[k][i]) * below_pen)
+                        else:
+                            dev = ca.fabs(X[k][i] - setpoints[lab])
+                            excess = ca.fmax(0.0, dev - self.landscape.comfort_band)
                         comfort += (excess / scale) ** 2
-                # 电费（简化）
+                # 电费（与名义求解器对齐：部分负荷 COP 惩罚）
                 elec = 0.0
+                unit_caps = [max(abs(lo), abs(hi), 1e-9) for lo, hi in sim.hvac.bounds()]
                 for j in range(n_u):
                     q = u[j]
                     cop = ca.if_else(q >= 0, sim.hvac.cop_heating, sim.hvac.cop_cooling)
+                    load = ca.fabs(q) / (unit_caps[j] if j < len(unit_caps) else 1e-9)
+                    cop_eff = cop * (1.0 - sim.hvac.part_load_penalty * (1.0 - load) ** 2)
                     factor = ca.if_else(q >= 0, self.heating_cost_factor, 1.0)
-                    elec += factor * ca.fabs(q) / cop
+                    elec += factor * ca.fabs(q) / ca.fmax(cop_eff, 1e-6)
                 price = w[price_idx] if w.numel() > price_idx else 1.0
                 smooth = ca.sumsqr(u - prev_u)
                 total_cost += (

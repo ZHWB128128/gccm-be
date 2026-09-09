@@ -48,10 +48,7 @@ def build_building(model_type: str, **params):
 
 
 def registered_buildings() -> dict[str, type]:
-    return {name: cls for name, cls, _ in
-            ((n, *v) for n, v in _REGISTRY.items())} if False else {
-        name: cls for name, (cls, _) in _REGISTRY.items()
-    }
+    return {name: cls for name, (cls, _) in _REGISTRY.items()}
 
 
 # --- 协议检查：注册时验证模型类满足最小结构契约 ---
