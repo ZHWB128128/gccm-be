@@ -127,7 +127,7 @@ gccm_be/
 ├── control/      # SafeController 兜底控制律
 └── engine.py     # 顶层编排
 examples/         # 49 个实验脚本（见 examples/README.md）
-tests/            # 176 项行为级测试（CasADi 缺失自动跳过）
+tests/            # 187 项行为级测试（CasADi 缺失自动跳过）
 docs/             # 技术报告 / 架构 / 试验台数据 / 试点方案
 ```
 

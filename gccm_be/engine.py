@@ -171,7 +171,6 @@ class GCCMEngine:
             }
             self.rc_identifier = self.rc_identifiers_by_zone["A"]
         self._warm_start = None
-        self._last_predicted_air: float | None = None
         self._last_curvature_min: float | None = None
 
         # Canonical owner of the fallback/safe control laws (extracted from this
@@ -612,7 +611,7 @@ class GCCMEngine:
         if solver_failed:
             # 求解失败时预测状态不可信：置 None，避免把"实际状态变化"误当模型误差喂给自监控/辨识器
             predicted_next_state = None
-            self._last_predicted_air = None
+            self._last_predicted_state = None
         else:
             predicted_next_state = trajectory.states[1] if len(trajectory.states) > 1 else state.copy()
             # 记录预测全状态：下一步实测后算 max-norm 已实现误差（与 evaluate 同口径）
@@ -699,7 +698,7 @@ class GCCMEngine:
         except Exception:
             pass
         # 双区：逐区喂样本（rc_identifier 即 A 区，避免重复更新）
-        for zid, ident in getattr(self, "rc_identifiers_by_zone", {}).items():
+        for ident in getattr(self, "rc_identifiers_by_zone", {}).values():
             if ident is not self.rc_identifier:
                 ident.update(state, control, external, next_state, dt)
 

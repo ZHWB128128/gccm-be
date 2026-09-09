@@ -122,7 +122,7 @@ gccm_be/
 ├── control/      # SafeController fallback laws
 └── engine.py     # top-level orchestration
 examples/         # 49 experiment scripts (see examples/README.md)
-tests/            # 176 behavior-level tests (CasADi tests auto-skip when absent)
+tests/            # 187 behavior-level tests (CasADi tests auto-skip when absent)
 docs/             # technical report / architecture / testbed data / pilot plan
 ```
 
