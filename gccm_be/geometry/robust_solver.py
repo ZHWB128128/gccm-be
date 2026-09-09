@@ -90,6 +90,9 @@ class RobustGeodesicSolver:
                         vals.append(state.x[idx] - lo)
             return np.array(vals)
 
+        # 性能注记：obj 与 constraints 各自独立 rollout(N 场景×H 步)，
+        # SLSQP 数值梯度下总代价 O(N·H²·n_u)——horizon 48×双场景即分钟级。
+        # 中期解法：CasADi 鲁棒路径（解析导数）已在路线图；scipy 后端保留为原型。
         cons = [{"type": "ineq", "fun": constraints}]
         res = minimize(obj, x0, method="SLSQP", bounds=bounds * self.horizon,
                        constraints=cons, options={"maxiter": 100, "ftol": 1e-6})

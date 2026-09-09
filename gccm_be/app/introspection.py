@@ -229,6 +229,10 @@ def describe(engine: GCCMEngine | None = None) -> dict[str, Any]:
         "physics_models": PHYSICS_MODELS,
         "diagnostic_fields": DIAGNOSTIC_FIELDS,
         "state_labels": (list(engine.manifold.labels) if engine is not None else ["T_air", "T_wall"]),
+        # CasADi 支持矩阵（model.type → bool）：不支持的类型 use_casadi 会 fail-fast
+        "casadi_supported": {"single_zone": True, "two_zone": True,
+                             "three_rc": False, "nonlinear_rc": False,
+                             "datacenter": False},
         # 当前激活的物理模型类名（对应 physics_models 注册表中的 id）
         "active_model": (type(engine.simulator.building).__name__ if engine is not None else None),
         # 架构图页签数据（分层 / 一次决策管线 / 安全降级点 / 理论层定位）

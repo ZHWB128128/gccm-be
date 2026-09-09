@@ -90,26 +90,32 @@ class SimpleAPI:
         applied: dict[str, Any] = {}
         rejected: list[str] = []
         with self._lock:
-            for k, v in payload.items():
-                if k not in allowed:
-                    rejected.append(k)
-                    continue
-                cur = getattr(self.engine, k, None)
-                if isinstance(cur, bool):
-                    v = bool(v)
-                elif isinstance(cur, (int, float)) or cur is None:
-                    v = float(v)
-                # 语义校验：geodesic 软惩罚 > 0 需要 use_riemannian
-                setattr(self.engine, k, v)
-                applied[k] = v
-            # 一次性一致性校验（复用引擎已有的开关校验，非法则回滚该字段）
+            old_values = {}
             try:
-                if hasattr(self.engine, "_validate_config"):
-                    self.engine._validate_config()
-            except Exception:
-                pass
+                for k, v in payload.items():
+                    if k not in allowed:
+                        rejected.append(k)
+                        continue
+                    cur = getattr(self.engine, k, None)
+                    old_values[k] = cur
+                    if isinstance(cur, bool):
+                        v = bool(v)
+                    elif isinstance(cur, (int, float)) or cur is None:
+                        v = float(v)
+                    setattr(self.engine, k, v)
+                    applied[k] = v
+                # 真校验：非法则整体回滚并抛 400（不再吞异常）
+                self.engine._validate_config()
+            except (ValueError, TypeError) as exc:
+                for k, cur in old_values.items():
+                    setattr(self.engine, k, cur)
+                raise ValueError(f"配置非法（已回滚）: {exc}") from exc
             # warm start 依赖 horizon/开关，改配置后清空避免脏初值
             self.engine._warm_start = None
+            # horizon 变化后 nominal/min horizon 同步（与 __post_init__ 规则一致）
+            if "horizon" in applied:
+                self.engine.nominal_horizon = self.engine.horizon
+                self.engine.min_horizon = max(4, self.engine.horizon // 2)
         return {"applied": applied, "rejected": rejected}
 
     def simulate(self, payload: dict[str, Any]) -> dict[str, Any]:

@@ -148,3 +148,20 @@ def test_violations_occupied_excludes_night_drift():
     occ = violations_occupied(rows, bands, occupied_hours=(7.0, 19.0))
     assert full["A"] > 40.0        # 旧口径：夜间漂移全算违温
     assert occ["A"] == 0.0         # 新口径：有人时段全部达标
+
+
+# --- _perturbed_building 保留非扰动字段(with_slab 传递) ---
+
+def test_perturbed_building_preserves_with_slab_and_custom_params():
+    from gccm_be.app.config import _perturbed_building
+    from gccm_be.physics.models import TwoZoneRCBuildingModel
+    b = TwoZoneRCBuildingModel(with_slab=True, c_slab=12.0, r_slab=0.4)
+    p = _perturbed_building(b, 1.0, 0.15)
+    # 结构字段保留（旧实现 type(building)(**fields) 会丢 with_slab）
+    assert p.with_slab is True
+    # 用户自定义的未扰动参数保留（旧实现静默落回默认 15.0/0.5）
+    assert p.c_slab == 12.0 and p.r_slab == 0.4
+    # 热参数被扰动
+    assert p.r_wall_a != b.r_wall_a
+    # 标签与 dt 保留
+    assert p.state_labels == b.state_labels and p.dt == b.dt

@@ -18,6 +18,10 @@ except Exception:  # pragma: no cover
     HAS_CASADI = False
 
 
+# CasADi 后端支持矩阵（model.type → 是否有 _casadi_step 分支）
+CASADI_SUPPORTED = {"single_zone", "two_zone"}
+
+
 def _casadi_step(building, x, u, w, dt):
     """返回 CasADi 下一时刻状态表达式。"""
     if isinstance(building, TwoZoneRCBuildingModel):
@@ -196,13 +200,14 @@ class CasadiGeodesicSolver:
         if not air_indices:
             air_indices = [0]
 
-        metric_diag = None
-        if self.use_kinetic:
-            # P0 修正：度量取在真实状态处（landscape.kinetic_term 同样警告过
-            # 零点 dummy 在 state_dependence≠0 时塌缩到近零，使动能项失效）
+        metric_state_dep = getattr(self.landscape, "metric_state_dependence", 0.0)
+        if self.use_kinetic and metric_state_dep == 0.0:
+            # 度量不随状态变化 → 循环外取一次（零开销路径）
             curr_state = SystemState(np.array(initial_state.x, dtype=float),
                                      list(self.landscape.manifold.labels))
-            metric_diag = np.diag(self.landscape.metric(curr_state))
+            metric_diag_fixed = np.diag(self.landscape.metric(curr_state))
+        else:
+            metric_diag_fixed = None  # state_dep≠0 时每步按 xk 重取
 
         def comfort_expr(value: ca.MX, label: str, setpoint: float, scale: float) -> ca.MX:
             # 每区独立舒适带优先（bounds_for 内含标量回退），无边界时用软带
@@ -237,9 +242,15 @@ class CasadiGeodesicSolver:
             step_cost = 0.0
 
             # 动能项：显式度量张量下的离散测地线作用量
-            if self.use_kinetic and metric_diag is not None:
+            if self.use_kinetic:
+                if metric_diag_fixed is not None:
+                    g_diag = metric_diag_fixed
+                else:
+                    # P0 修正：度量随状态变化时按当前 xk 重取（与 numpy 路径一致）
+                    g_diag = np.diag(self.landscape.metric(
+                        SystemState(np.array(xk), list(self.landscape.manifold.labels))))
                 delta = xk_next - xk
-                kinetic = 0.5 * ca.dot(delta, ca.MX(metric_diag) * delta) / (self.dt ** 2)
+                kinetic = 0.5 * ca.dot(delta, ca.MX(g_diag) * delta) / (self.dt ** 2)
                 step_cost += kinetic
 
             # 舒适代价

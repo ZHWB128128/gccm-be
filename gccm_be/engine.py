@@ -702,6 +702,25 @@ class GCCMEngine:
             if ident is not self.rc_identifier:
                 ident.update(state, control, external, next_state, dt)
 
+    def _validate_config(self) -> None:
+        """运行时配置一致性校验（/config 热更新后调用）；非法抛 ValueError。
+
+        汇总各开关/权重的语义约束（与 GeodesicSolver._validate_riemannian_switches
+        同源的规则 + 本引擎层的新增约束）。set_config 失败时先恢复旧值再抛 400。
+        """
+        if self.geodesic_penalty_weight > 0.0 and not self.use_riemannian:
+            raise ValueError("geodesic_penalty_weight>0 需要 use_riemannian=True")
+        for name, val in (("riemannian_strength", self.riemannian_strength),
+                          ("riemannian_control_weight", self.riemannian_control_weight),
+                          ("geodesic_penalty_weight", self.geodesic_penalty_weight)):
+            if val < 0.0:
+                raise ValueError(f"{name} 必须 >= 0, 收到 {val}")
+        if self.horizon < 1:
+            raise ValueError(f"horizon 必须 >= 1, 收到 {self.horizon}")
+        if self.comfort_min is not None and self.comfort_max is not None                 and self.comfort_min >= self.comfort_max:
+            raise ValueError(
+                f"comfort_min({self.comfort_min}) >= comfort_max({self.comfort_max})")
+
     @staticmethod
     def _rc_params_plausible(params: dict) -> bool:
         """物理合理性门控：c/r/solar 均有限且在经验范围内。
@@ -855,16 +874,29 @@ class GCCMEngine:
         return True
 
     def _apply_model_bias(self, external_seq: Sequence[ExternalInput]) -> list[ExternalInput]:
-        """Adds the online-identified model bias to the predicted external inputs."""
+        """在线辨识的模型偏置应用（量纲修正后的语义）。
+
+        model_bias 来自 RLS 对 signed_error = (actual − predicted) 的一维估计，
+        单位是 **K/步**（空气温度的每步偏差），物理含义是"模型系统性低估室温"。
+        它不属于任何外部输入通道——把它加到 occ(kW) 是量纲错误（0.3K 会变成
+        43% 的内热扰动，过度矫正）。
+
+        正确语义：作为**状态预测的加性偏置**直接作用于预测的 T_air——模型误差
+        未必来自内热，加性偏置是更中性的表达。实现方式：把 K/步偏置折算为等效
+        的外部得热增量 ΔQ = c_air·bias/dt（kW），保留原"改外部输入"的机制但
+        量纲正确；等效地每步预测 T_air 会多出 bias(K)。
+        """
         if abs(self.model_bias) < 1e-6:
             return list(external_seq)
+        dt = self.dt or self.simulator.building.dt
+        c_air = getattr(self.simulator.building, "c_air", 1.0)
+        delta_q = c_air * self.model_bias / dt   # K/步 → kW（等效内热增量）
         corrected = []
         for w in external_seq:
             arr = w.w.copy()
-            # 对 occupancy / internal heat 维度叠加偏差
             for i, lab in enumerate(w.labels):
                 if lab.startswith("occ"):
-                    arr[i] += self.model_bias
+                    arr[i] += delta_q
             corrected.append(ExternalInput(arr, list(w.labels)))
         return corrected
 

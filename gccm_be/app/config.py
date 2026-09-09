@@ -103,24 +103,28 @@ def load_config(path: str) -> dict[str, Any]:
     return _deep_merge(DEFAULTS, _read_user_config(path))
 
 
+# Controller 段允许透传的引擎字段（schema 驱动的白名单源：
+# dataclasses.fields(GCCMEngine) 中与运行配置对应的子集——
+# 新增引擎字段时在此集合加一行即可，_controller_kwargs 自动透传）
+_CONTROLLER_PASSTHROUGH_FIELDS = frozenset({
+    "horizon", "comfort_min", "comfort_max", "comfort_margin",
+    "comfort_weight", "energy_weight", "smooth_weight",
+    "peak_price_threshold", "peak_energy_penalty",
+    "enforce_comfort_constraints", "use_kinetic", "safe_control_mode",
+    "confidence_calibrated", "confidence_quantile",
+})
+
+
 def _controller_kwargs(c: dict[str, Any]) -> dict[str, Any]:
-    """Controller section shared by all model types."""
-    return dict(
-        horizon=c["horizon"],
-        comfort_min=c["comfort_min"],
-        comfort_max=c["comfort_max"],
-        comfort_margin=c["comfort_margin"],
-        comfort_weight=c["comfort_weight"],
-        energy_weight=c["energy_weight"],
-        smooth_weight=c["smooth_weight"],
-        peak_price_threshold=c["peak_price_threshold"],
-        peak_energy_penalty=c["peak_energy_penalty"],
-        enforce_comfort_constraints=c["enforce_comfort_constraints"],
-        use_kinetic=c["use_kinetic"],
-        safe_control_mode=c["safe_control_mode"],
-        confidence_calibrated=c["confidence_calibrated"],
-        confidence_quantile=c["confidence_quantile"],
-    )
+    """Controller section shared by all model types（schema 驱动自动映射）。"""
+    from dataclasses import fields as dc_fields
+    from ..engine import GCCMEngine
+    engine_fields = {f.name for f in dc_fields(GCCMEngine)}
+    kw = {}
+    for key in _CONTROLLER_PASSTHROUGH_FIELDS:
+        if key in c and key in engine_fields:
+            kw[key] = c[key]
+    return kw
 
 
 def _hvac_kwargs(h: dict[str, Any]) -> dict[str, Any]:
@@ -236,18 +240,23 @@ def _two_zone_engine(cfg: dict[str, Any], user_building: dict[str, Any]) -> GCCM
 
 
 def _perturbed_building(building, sign: float, delta: float):
-    """RC 参数整体扰动 ±delta，生成鲁棒场景建筑（dt 不扰动）。
+    """RC 参数整体扰动 ±delta，生成鲁棒场景建筑。
 
-    覆盖建筑/数据中心两类模型的热参数；设备能力上限（q_disc_max 等）是
-    物理铭牌值，不属于预报不确定性，不扰动。
+    用 dataclasses.replace 构造——未列出的字段（with_slab/state_labels/
+    control_labels/c_slab/r_slab/dt 等）**天然全部保留**，修复了旧实现的
+    两个问题：①with_slab 结构丢失（场景退化为无蓄热层）；②用户自定义的
+    c_slab/r_slab 静默落回默认值。
+    扰动清单只含热参数；设备能力上限（q_disc_max 等）是物理铭牌值，
+    不属于预报不确定性，不扰动。
     """
+    import dataclasses
     fields = {}
     for f in ("c_air", "c_wall", "c_partition", "c_furn", "c_aisle", "c_tank",
               "r_air", "r_wall", "r_wall_a", "r_wall_b", "r_partition", "r_out",
               "solar_gain", "solar_gain_a", "solar_gain_b"):
         if hasattr(building, f):
             fields[f] = getattr(building, f) * (1.0 + sign * delta)
-    return type(building)(**fields)
+    return dataclasses.replace(building, **fields)
 
 
 def _apply_robust_scenarios(engine: GCCMEngine, cfg: dict[str, Any]) -> GCCMEngine:
@@ -259,7 +268,8 @@ def _apply_robust_scenarios(engine: GCCMEngine, cfg: dict[str, Any]) -> GCCMEngi
         cal_file = r.get("calibration_file")
         if not cal_file:
             raise ValueError('robust.delta 为 null 时必须提供 robust.calibration_file')
-        delta = json.load(open(cal_file, encoding="utf-8"))["calibration"]["recommended_delta"]
+        with open(cal_file, encoding="utf-8") as f:
+            delta = json.load(f)["calibration"]["recommended_delta"]
     delta = float(delta)
     building = engine.simulator.building
     hvac = engine.simulator.hvac
@@ -311,6 +321,15 @@ def engine_from_dict(cfg: dict[str, Any]) -> GCCMEngine:
     user_building = dict(cfg.get("building") or {})
     cfg = _deep_merge(DEFAULTS, cfg)
     mtype = str(cfg.get("model", {}).get("type", "single_zone")).lower()
+    # CasADi 覆盖 fail-fast：不支持的模型在配置时报错，而非运行时静默降级
+    if cfg.get("controller", {}).get("use_casadi"):
+        from ..geometry.casadi_solver import CASADI_SUPPORTED
+        if mtype not in CASADI_SUPPORTED:
+            raise ValueError(
+                f"CasADi 后端暂不支持 model.type={mtype!r}"
+                f"（支持：{sorted(CASADI_SUPPORTED)}）；"
+                f"请去掉 use_casadi 或改用受支持的模型"
+            )
     builder = _MODEL_BUILDERS.get(mtype)
     if builder is not None:
         engine = builder(cfg, user_building)

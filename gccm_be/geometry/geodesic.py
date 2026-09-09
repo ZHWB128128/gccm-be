@@ -298,8 +298,8 @@ class GeodesicSolver:
         costs.append(float(terminal))
         total += terminal
 
-        # 求解成功与否以 result.success 为准；nit==0（未迭代，如初值即最优）
-        # 不会被误判为成功——避免掩盖停滞
+        # 求解成功与否以 result.success 为准。注意：L-BFGS-B 在初值已满足
+        # gtol 时可以 nit==0 且 success=True——nit==0 不必然意味着停滞
         success = bool(result.success)
         return Trajectory(
             controls=controls,
